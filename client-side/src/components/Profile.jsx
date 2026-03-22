@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./Profile.css";
+import Loader from "./loader";
 
 function Profile() {
   const [profileData, setProfileData] = useState(null);
@@ -38,7 +39,7 @@ function Profile() {
   if (loading) {
     return (
       <div className="profile-wrapper">
-        <div className="profile-card">Loading profile...</div>
+        <Loader/>
       </div>
     );
   }
@@ -85,5 +86,4 @@ function Profile() {
     </div>
   );
 }
-
 export default Profile;

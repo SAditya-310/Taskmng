@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
 import "./dashboard.css";
+import Loader from "./loader";
 function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [status, setStatus] = useState("all");
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const tasksPerPage = 6;
   const [formData, setFormData] = useState({
@@ -28,6 +30,7 @@ function Dashboard() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
   useEffect(() => {
+    setLoading(true);
     const gettask = async () => {
       try {
         const fet = await fetch(`http://localhost:5000/gettask?status=${status}`, {
@@ -42,6 +45,9 @@ function Dashboard() {
         }
       } catch (err) {
         console.error("Error fetching tasks:", err);
+      }
+      finally{
+        setLoading(false);
       }
     }
     checktask();
@@ -171,7 +177,7 @@ function Dashboard() {
           <span>Status</span>
           <span>Action</span>
         </div>
-        {paginatedTasks.map((task) => (
+        {loading ? (<Loader />) : (paginatedTasks.map((task) => (
           <div key={task._id} className="task-row-item">
             <div className="task-main-info">
               <div className={`category-dot ${(task.category || 'general').toLowerCase()}`}></div>
@@ -213,7 +219,7 @@ function Dashboard() {
               </button>
             </div>
           </div>
-        ))}
+        )))}
       </div>
 
       <div className="dashboard-pagination">
