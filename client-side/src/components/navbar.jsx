@@ -1,7 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "./navbar.css";
+// import User from "../../../server-side/models/User";
 function Navbar() {
+    const usr = JSON.parse(localStorage.getItem("user"));
     return (
         <div>
             <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -24,6 +26,11 @@ function Navbar() {
                             <li className="nav-item">
                                 <Link className="nav-link" to="/profile">Profile</Link>
                             </li>
+                            {usr && usr.role === "Admin" && (
+                                <li className="nav-item">
+                                    <Link className="nav-link" to="/members">Members</Link>
+                                </li>
+                            )}
                         </ul>
                         {/* <form className="d-flex" role="search">
                             <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search" />

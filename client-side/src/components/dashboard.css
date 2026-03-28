@@ -217,7 +217,7 @@
 
 .list-header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr;
   padding: 16px 32px;
   background: #f8fbff;
   border-bottom: 1px solid var(--border);
@@ -230,7 +230,7 @@
 
 .task-row-item {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr;
   padding: 20px 32px;
   align-items: center;
   border-bottom: 1px solid #edf2f7;

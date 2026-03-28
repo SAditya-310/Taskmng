@@ -4,6 +4,7 @@ import Navbar from "./components/navbar";
 import Home from './components/Home';
 import Dashboard from './components/dashboard';
 import Profile from './components/Profile';
+import Members from './components/Members';
 import PrivateLayout from './components/private';
 import Login from './pages/login';
 import Signup from './pages/signup';
@@ -16,8 +17,9 @@ function App() {
                 <Route element={<PrivateLayout />}>
                     <Route path="/home" element={<Home />} />
                     <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/progress" element={<div>Progress Page</div>} />
+                    {/* <Route path="/progress" element={<div>Progress Page</div>} /> */}
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/members" element={<Members/>} />
                 </Route>
             </Routes>
         </Router>

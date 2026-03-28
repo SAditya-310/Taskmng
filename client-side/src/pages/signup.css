@@ -41,6 +41,24 @@
   box-shadow: 0 0 6px rgba(79,70,229,0.4);
 }
 
+/* role select */
+.signup-select {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  outline: none;
+  background: #fff;
+  color: #1e293b;
+  transition: 0.25s;
+}
+
+.signup-select:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 6px rgba(79,70,229,0.4);
+}
+
 /* button */
 .signup-btn {
   width: 100%;

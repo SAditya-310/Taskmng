@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import "./signup.css";
 function Signup(e) {
     const navigate = useNavigate();
-    // e.preventDefault();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [Name, setName] = useState("");
@@ -57,6 +56,10 @@ function Signup(e) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
+                <select className="signup-select" name="type" id="type">
+                    <option value="user type" selected>Select User Type</option>
+                    <option value="admin">Admin</option>
+                </select>
 
                 <button className="signup-btn" onClick={handlesubmit}>
                     Sign Up

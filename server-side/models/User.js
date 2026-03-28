@@ -12,6 +12,15 @@ const userSchema=new mongoose.Schema({
     password:{
         type:String,
         required:true
+    },
+    status:{
+        type:String,
+        enum:["active","inactive"],
+        default:"active"
+    },
+    managerId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Admin"
     }
 });
 const User=mongoose.model("User",userSchema);

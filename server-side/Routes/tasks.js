@@ -1,5 +1,6 @@
 import { Router } from "express";
 import Task from "../models/Task.js";
+import User from "../models/User.js";
 import { body, validationResult } from "express-validator";
 import middle from "../middleware/mid1.js";
 import solve from "../calc/prioritycalc.js";
@@ -201,4 +202,30 @@ router.get("/getoverdue",middle,async(req,res)=>{
         res.status(500).json({message:"Error updating overdue tasks: "+err.message,error:err.message});
     }
 });
+router.get("/members",middle,async(req,res)=>{
+    const Id=req.user.id;
+    try{
+        const members=await User.find({managerId:Id}).select("_id name email");
+        res.status(200).json(members);
+    }catch(err){
+        console.error("Fetch Members Error:", err);
+        res.status(500).json({message:"Error fetching members: "+err.message,error:err.message});
+    }
+});
+router.delete("/members/:id",middle,async(req,res)=>{
+    const Id=req.user.id;
+    const memberId=req.params.id;
+    try{
+        const member=await User.findOneAndDelete({_id:memberId,managerId:Id});
+        if(!member){
+            return res.status(404).json({message:"Member not found"});
+        }
+        await Task.deleteMany({assignedTo:memberId,assignedBy:Id});
+        res.status(200).json({message:"Member deleted successfully",memberId});
+    }catch(err){
+        console.error("Delete Member Error:", err);
+        res.status(500).json({message:"Error deleting member: "+err.message,error:err.message});
+    }
+});
+
 export default router;
