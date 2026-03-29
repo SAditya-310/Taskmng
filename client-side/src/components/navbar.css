@@ -33,6 +33,23 @@
   font-weight: 600;
 }
 
+.navbar-user-type {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #cde7f8;
+  background: linear-gradient(180deg, #ffffff, #eef8ff);
+  color: #0b5677;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 12px;
+}
+
 /* Search box */
 .form-control {
   border-radius: 6px;

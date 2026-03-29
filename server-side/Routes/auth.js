@@ -137,13 +137,24 @@ router.post("/addmember", middle, async (req, res) => {
 // ✅ FIXED PROFILE
 router.get("/profile", middle, async (req, res) => {
     const userId = req.user.id;
+    const role = req.user.role;
 
     try {
-        const existingUser = await User.findById(userId).select("name email");
+        const existingUser = role === "Admin"
+            ? await Admin.findById(userId).select("name email")
+            : await User.findById(userId).select("name email");
 
-        const totalTasks = await Task.countDocuments({ assignedTo: userId });
+        if (!existingUser) {
+            return res.status(404).json({ message: "Profile not found" });
+        }
+
+        const taskOwnerFilter = role === "Admin"
+            ? { assignedBy: userId }
+            : { assignedTo: userId };
+
+        const totalTasks = await Task.countDocuments(taskOwnerFilter);
         const completedTasks = await Task.countDocuments({
-            assignedTo: userId,
+            ...taskOwnerFilter,
             status: "completed"
         });
 

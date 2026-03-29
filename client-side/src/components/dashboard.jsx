@@ -5,6 +5,7 @@ import Loader from "./loader";
 function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const [tasks, setTasks] = useState([]);
+  const [mems, setMems] = useState([]);
   const [status, setStatus] = useState("all");
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -14,8 +15,10 @@ function Dashboard() {
     date: "",
     time: "",
     priority: 0,
+    toUser: ""
   });
   const token = localStorage.getItem("token");
+  const userRole = JSON.parse(localStorage.getItem("user"))?.role;
   const totalPages = Math.max(1, Math.ceil(tasks.length / tasksPerPage));
   const startIndex = (page - 1) * tasksPerPage;
   const paginatedTasks = tasks.slice(startIndex, startIndex + tasksPerPage);
@@ -32,8 +35,16 @@ function Dashboard() {
   useEffect(() => {
     setLoading(true);
     const gettask = async () => {
+      const userType = JSON.parse(localStorage.getItem("user"))?.role;
+      let x="";
+      if(userType=="Admin"){
+        x="getmanagertask";
+      }
+      else{
+        x="gettask";
+      }
       try {
-        const fet = await fetch(`http://localhost:5000/gettask?status=${status}`, {
+        const fet = await fetch(`http://localhost:5000/${x}?status=${status}`, {
           method: "GET",
           headers: { "Content-Type": "application/json", "token": token },
         });
@@ -53,6 +64,12 @@ function Dashboard() {
     checktask();
     gettask();
   }, [status]);
+
+  useEffect(() => {
+    if (showModal) {
+      getmems();
+    }
+  }, [showModal]);
   const checktask = async () => {
     try {
       const res = await fetch("http://localhost:5000/getoverdue", {
@@ -69,6 +86,23 @@ function Dashboard() {
       console.error("Error checking overdue tasks:", err);
     }
   }
+  const getmems = async () => {
+    try{
+      const res = await fetch("http://localhost:5000/members", {
+        method: "GET",
+        headers: { "Content-Type": "application/json", "token": token }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMems(data);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        console.error("Failed to fetch members:", errData.message || res.statusText);
+      }
+    } catch (err) {
+      console.error("Error fetching members:", err);
+    }
+  }
   const addtask = async (e) => {
     e.preventDefault();
     try {
@@ -79,9 +113,17 @@ function Dashboard() {
       });
       const data = await res.json();
       if (res.ok) {
-        setTasks([...tasks, data]);
+        const selectedMember = mems.find((mem) => mem._id === formData.toUser);
+        setTasks([
+          ...tasks,
+          {
+            ...data,
+            assignedTo: formData.toUser,
+            assignedToName: selectedMember?.name || "Unknown User"
+          }
+        ]);
         setShowModal(false);
-        setFormData({ title: "", date: "", time: "", priority: 0 });
+        setFormData({ title: "", date: "", time: "", priority: 0, toUser: "" });
         alert("Task added successfully!");
       } else {
         alert(data.message || data.errors?.[0]?.msg || "Error adding task");
@@ -91,7 +133,6 @@ function Dashboard() {
       alert("Error connecting to server");
     }
   };
-
   const markDone = async (taskId) => {
     try {
       const res = await fetch(`http://localhost:5000/mark/${taskId}`, {
@@ -114,6 +155,11 @@ function Dashboard() {
   };
 
   const deleteTask = async (taskId) => {
+    if (userRole !== "Admin") {
+      alert("Only admins are allowed to delete tasks");
+      return;
+    }
+
     const shouldDelete = window.confirm("Are you sure you want to discard this task?");
     if (!shouldDelete) return;
 
@@ -165,14 +211,17 @@ function Dashboard() {
           </div>
 
           {/* New Task Button */}
-          <button className="add-task-btn" onClick={() => setShowModal(true)}>
-            + New Task
-          </button>
+          {userRole === "Admin" && (
+            <button className="add-task-btn" onClick={() => setShowModal(true)}>
+              + New Task
+            </button>
+          )}
         </div>
       </header>
       <div className="task-list-container">
         <div className="list-header">
           <span>Task Detail</span>
+          {userRole=="Admin"&&(<span>Assigned To</span>)}
           <span>Due Date/Done At</span>
           <span>Status</span>
           <span>Action</span>
@@ -185,6 +234,9 @@ function Dashboard() {
                 <div className="task-name-text">{task.title}</div>
               </div>
             </div>
+            {userRole === "Admin" && (
+              <div className="task-assigned-column">{task.assignedToName || "Unknown User"}</div>
+            )}
             <div className="task-date">
               {task.status === "completed"
                 ? task.doneAt
@@ -200,23 +252,27 @@ function Dashboard() {
               </span>
             </div>
             <div className="action-buttons">
-              <button
-                className="done-action-btn"
-                onClick={() => markDone(task._id)}
-                disabled={task.status === "completed" || task.status === "overdue"}
-                style={{
-                  opacity: task.status === "completed" || task.status === "overdue" ? 0.5 : 1,
-                  cursor: task.status === "completed" || task.status === "overdue" ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {task.status === "completed" ? "✓ Completed" : "Mark Done"}
-              </button>
-              <button
-                className="discard-action-btn"
-                onClick={() => deleteTask(task._id)}
-              >
-                Discard
-              </button>
+              {userRole === "User" && (
+                <button
+                  className="done-action-btn"
+                  onClick={() => markDone(task._id)}
+                  disabled={task.status === "completed" || task.status === "overdue"}
+                  style={{
+                    opacity: task.status === "completed" || task.status === "overdue" ? 0.5 : 1,
+                    cursor: task.status === "completed" || task.status === "overdue" ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {task.status === "completed" ? "✓ Completed" : "Mark Done"}
+                </button>
+              )}
+              {userRole === "Admin" && (
+                <button
+                  className="discard-action-btn"
+                  onClick={() => deleteTask(task._id)}
+                >
+                  Discard
+                </button>
+              )}
             </div>
           </div>
         )))}
@@ -265,7 +321,17 @@ function Dashboard() {
                     <input name="time" type="time" value={formData.time} onChange={handleInputChange} />
                   </div>
                 </div>
-
+                <div className="input-field">
+                    <label>To:</label>
+                    <select name="toUser" onChange={handleInputChange} value={formData.toUser} required>
+                      <option value="">Select User</option>
+                      {mems.map((mem) => (
+                        <option key={mem._id} value={mem._id}>
+                          {mem.name}
+                        </option>
+                      ))}
+                    </select>
+                </div>
                 <div className="input-field">
                   <label>Importance / Priority on a scale of 10</label>
                   <input name="priority" type="number" min="1" max="10" value={formData.priority} onChange={handleInputChange} required />

@@ -16,13 +16,24 @@ router.post("/addtask", middle, [
         return res.status(400).json({ errors: errors.array() });
     }
     const Id = req.user.id;
-    const { title, date, time, priority } = req.body;
+    const role = req.user.role;
+    const { title, date, time, priority,toUser } = req.body;
+
+    if (role !== "Admin") {
+        return res.status(403).json({ message: "Only admin can add tasks" });
+    }
+
+    const member = await User.findOne({ _id: toUser, managerId: Id });
+    if (!member) {
+        return res.status(400).json({ message: "Invalid assignee for this admin" });
+    }
     const newTask = new Task({
         title: title,
         deadline: date,
         time: time,
         importance: priority,
-        id: Id
+        assignedTo: toUser,
+        assignedBy: Id,
     });
     try {
         const savedTask = await newTask.save();
@@ -46,13 +57,19 @@ router.post("/addtask", middle, [
 });
 router.get("/gettask", middle, async (req, res) => {
     const Id = req.user.id;
+    const role = req.user.role;
     const { status } = req.query;
-    const query={ id: Id };
+
+    if (role !== "User") {
+        return res.status(403).json({ message: "Only users can access this route" });
+    }
+
+    const query={ assignedTo: Id };
     if(status &&status!=="all"){
         query.status=status;
     }
     try {
-        const taskdata = await Task.find(query);
+        const taskdata = await Task.find(query).populate("assignedTo", "name");
         if (!taskdata) {
             res.status(401).send("Not found");
         }
@@ -67,6 +84,50 @@ router.get("/gettask", middle, async (req, res) => {
                 time: task.time,
                 priority: task.importance,
                 category: "General",
+                assignedTo: task.assignedTo?._id || null,
+                assignedToName: task.assignedTo?.name || "Unknown User",
+                status: task.status,
+                doneAt: task.doneAt,
+                doneTime: task.doneTime
+            };
+        });
+        res.status(200).json(formattedTasks);
+    }
+    catch (err) {
+        res.status(500).json({ message: "Error fetching tasks", error: err });
+    }
+});
+router.get("/getmanagertask", middle, async (req, res) => {
+    const Id = req.user.id;
+    const role = req.user.role;
+    const { status } = req.query;
+
+    if (role !== "Admin") {
+        return res.status(403).json({ message: "Only admins can access this route" });
+    }
+
+    const query={ assignedBy: Id };
+    if(status &&status!=="all"){
+        query.status=status;
+    }
+    try {
+        const taskdata = await Task.find(query).populate("assignedTo", "name");
+        if (!taskdata) {
+            res.status(401).send("Not found");
+        }
+        const formattedTasks = taskdata.map(task => {
+            const deadlineDate = new Date(task.deadline);
+            const formattedDeadline = deadlineDate.toISOString().split('T')[0];
+            return {
+                _id: task._id,
+                title: task.title,
+                date: formattedDeadline,
+                deadline: formattedDeadline,
+                time: task.time,
+                priority: task.importance,
+                category: "General",
+                assignedTo: task.assignedTo?._id || null,
+                assignedToName: task.assignedTo?.name || "Unknown User",
                 status: task.status,
                 doneAt: task.doneAt,
                 doneTime: task.doneTime
@@ -80,8 +141,10 @@ router.get("/gettask", middle, async (req, res) => {
 });
 router.get("/getprioritytask", middle, async (req, res) => {
     const Id = req.user.id;
+    const role = req.user.role;
     try {
-        const taskdata = await Task.find({ id: Id });
+        const taskQuery = role === "Admin" ? { assignedBy: Id } : { assignedTo: Id };
+        const taskdata = await Task.find(taskQuery);
         if (!taskdata || taskdata.length === 0) {
             return res.status(200).json(null);
         }
@@ -112,8 +175,14 @@ router.get("/getprioritytask", middle, async (req, res) => {
 router.post("/mark/:id", middle, async (req, res) => {
     const taskId = req.params.id;
     const Id = req.user.id;
+    const role = req.user.role;
+
+    if (role !== "User") {
+        return res.status(403).json({ message: "Only users can mark tasks as completed" });
+    }
+
     try {
-        const task = await Task.findOne({ _id: taskId, id: Id });
+        const task = await Task.findOne({ _id: taskId, assignedTo: Id });
         if (!task) {
             return res.status(404).json({ message: "Task not found" });
         }
@@ -159,13 +228,17 @@ router.post("/mark/:id", middle, async (req, res) => {
 router.delete("/task/:id", middle, async (req, res) => {
     const taskId = req.params.id;
     const Id = req.user.id;
-
+    const role = req.user.role;
     try {
-        const deletedTask = await Task.findOneAndDelete({ _id: taskId, id: Id });
-        if (!deletedTask) {
-            return res.status(404).json({ message: "Task not found" });
+        if (role !== "Admin") {
+            return res.status(403).json({ message: "Only admins are allowed to delete tasks" });
         }
 
+        const ownershipQuery = { _id: taskId, assignedBy: Id };
+        const deletedTask = await Task.findOneAndDelete(ownershipQuery);
+        if (!deletedTask) {
+            return res.status(404).json({ message: "Task not found or unauthorized" });
+        }
         return res.status(200).json({ message: "Task deleted successfully", taskId });
     } catch (err) {
         console.error("Delete Task Error:", err);
@@ -175,8 +248,12 @@ router.delete("/task/:id", middle, async (req, res) => {
 
 router.get("/getcompleted", middle, async (req, res) => {
     const Id = req.user.id;
+    const role = req.user.role;
     try {
-        const completedTasks = await Task.find({ id: Id, status: "completed" });
+        const query = role === "Admin"
+            ? { assignedBy: Id, status: "completed" }
+            : { assignedTo: Id, status: "completed" };
+        const completedTasks = await Task.find(query);
         completedTasks.sort((a, b) => {
             const fullDateB = new Date(`${b.doneAt}T${b.doneTime}`);
             const fullDateA = new Date(`${a.doneAt}T${a.doneTime}`);
@@ -191,11 +268,14 @@ router.get("/getcompleted", middle, async (req, res) => {
 });
 router.get("/getoverdue",middle,async(req,res)=>{
     const Id=req.user.id;
+    const role = req.user.role;
     try{
         const now=new Date();
-        const tsk=Task.updateMany({id:Id,deadline:{$lt:now},status:"pending"},{$set:{status:"overdue"}});
-        await tsk;
-        res.status(200).json({message:"Overdue tasks updated"});
+        const query = role === "Admin"
+            ? { assignedBy: Id, deadline: { $lt: now }, status: "pending" }
+            : { assignedTo: Id, deadline: { $lt: now }, status: "pending" };
+        const overdueTasks = await Task.updateMany(query, { $set: { status: "overdue" } });
+        res.status(200).json({ message:"Overdue tasks updated", matched: overdueTasks.matchedCount, updated: overdueTasks.modifiedCount });
     }
     catch(err){
         console.error("Overdue Update Error:", err);
@@ -204,6 +284,12 @@ router.get("/getoverdue",middle,async(req,res)=>{
 });
 router.get("/members",middle,async(req,res)=>{
     const Id=req.user.id;
+    const role = req.user.role;
+
+    if (role !== "Admin") {
+        return res.status(403).json({ message: "Only admins can view members" });
+    }
+
     try{
         const members=await User.find({managerId:Id}).select("_id name email");
         res.status(200).json(members);
@@ -214,7 +300,13 @@ router.get("/members",middle,async(req,res)=>{
 });
 router.delete("/members/:id",middle,async(req,res)=>{
     const Id=req.user.id;
+    const role = req.user.role;
     const memberId=req.params.id;
+
+    if (role !== "Admin") {
+        return res.status(403).json({ message: "Only admins can delete members" });
+    }
+
     try{
         const member=await User.findOneAndDelete({_id:memberId,managerId:Id});
         if(!member){

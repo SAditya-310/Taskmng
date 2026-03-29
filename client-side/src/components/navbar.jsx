@@ -4,6 +4,7 @@ import "./navbar.css";
 // import User from "../../../server-side/models/User";
 function Navbar() {
     const usr = JSON.parse(localStorage.getItem("user"));
+    const userTypeLabel = usr?.role === "Admin" ? "Team Leader" : "Team Member";
     return (
         <div>
             <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -36,6 +37,7 @@ function Navbar() {
                             <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
                             <button className="btn btn-outline-success" type="submit">Search</button>
                         </form> */}
+                        {usr && <div className="navbar-user-type">{userTypeLabel}</div>}
                     </div>
                 </div>
             </nav>

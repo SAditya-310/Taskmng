@@ -16,14 +16,14 @@ function Login() {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ email, password }) // ❌ removed type
+                body: JSON.stringify({ email, password })
             });
 
             const data = await res.json();
 
             if (res.ok && data.token) {
                 localStorage.setItem("token", data.token);
-                localStorage.setItem("user", JSON.stringify(data.user)); // ✅ store user from backend
+                localStorage.setItem("user", JSON.stringify(data.user)); 
                 if (data.user.role === "Admin") {
                     navigate("/Home");
                 } else {
