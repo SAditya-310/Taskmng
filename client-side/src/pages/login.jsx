@@ -24,11 +24,7 @@ function Login() {
             if (res.ok && data.token) {
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("user", JSON.stringify(data.user)); 
-                if (data.user.role === "Admin") {
-                    navigate("/Home");
-                } else {
-                    navigate("/Home");
-                }
+                navigate("/home");
             } else {
                 alert(data.message || "Invalid credentials");
             }

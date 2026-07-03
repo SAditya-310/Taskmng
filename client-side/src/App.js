@@ -17,7 +17,6 @@ function App() {
                 <Route element={<PrivateLayout />}>
                     <Route path="/home" element={<Home />} />
                     <Route path="/dashboard" element={<Dashboard />} />
-                    {/* <Route path="/progress" element={<div>Progress Page</div>} /> */}
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/members" element={<Members/>} />
                 </Route>

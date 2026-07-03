@@ -22,6 +22,7 @@ function Dashboard() {
   const totalPages = Math.max(1, Math.ceil(tasks.length / tasksPerPage));
   const startIndex = (page - 1) * tasksPerPage;
   const paginatedTasks = tasks.slice(startIndex, startIndex + tasksPerPage);
+  const roleLabel = userRole === "Admin" ? "Team Leader" : "Team Member";
 
   useEffect(() => {
     if (page > totalPages) {
@@ -186,8 +187,13 @@ function Dashboard() {
     <div className="home-wrapper">
       <header className="dashboard-header">
         <div className="header-text-group">
+          <span className="section-badge">{roleLabel}</span>
           <h1 className="section-title">Schedule Overview</h1>
-          <p className="section-subtitle">You have {tasks.length} tasks scheduled.</p>
+          <p className="section-subtitle">
+            {userRole === "Admin"
+              ? `You are managing ${tasks.length} tasks across your team.`
+              : `You have ${tasks.length} tasks scheduled.`}
+          </p>
         </div>
 
         <div className="header-actions">

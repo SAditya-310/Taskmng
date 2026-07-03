@@ -3,6 +3,7 @@ import "./Home.css";
 function Home() {
   const token = localStorage.getItem("token");
   console.log(token);
+  const userRole = JSON.parse(localStorage.getItem("user"))?.role;
   const [task, setTask] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [comp, setComp] = useState([]);
@@ -76,8 +77,13 @@ function Home() {
   return (
     <div className="home-wrapper">
       <header className="header-group">
-        <h1 className="section-title">Focus Dashboard</h1>
-        <p className="section-subtitle">Systems active. Complete the high-impact task below.</p>
+        <span className="section-badge">{userRole === "Admin" ? "Team leader view" : "Member view"}</span>
+        <h1 className="section-title">{userRole === "Admin" ? "Team Focus Dashboard" : "Personal Focus Dashboard"}</h1>
+        <p className="section-subtitle">
+          {userRole === "Admin"
+            ? "Track the strongest task in your queue and review team momentum at a glance."
+            : "Complete the highest-impact task first and keep your personal progress moving."}
+        </p>
       </header>
       <section className="primary-card">
         <div className="task-action-row">
@@ -85,7 +91,7 @@ function Home() {
             <span className="primary-label">Current Priority</span>
             <h2 className="primary-task">{task ? task.title : "No tasks available"}</h2>
             <div style={{ marginTop: '4px', fontSize: '13px', color: '#64748b' }}>
-              Yours Regular Tasks
+              {userRole === "Admin" ? "Highest-priority team item" : "Your active task queue"}
             </div>
           </div>
           <div className="deadline-pill">
@@ -100,11 +106,11 @@ function Home() {
       <div className="grid-row">
         <div className="small-card">
           <h5>⚡ Peak Productivity</h5>
-          <p>You've completed {count} tasks in the last 24 hours.</p>
+          <p>{userRole === "Admin" ? `Your team has completed ${count} tasks in the last 24 hours.` : `You've completed ${count} tasks in the last 24 hours.`}</p>
         </div>
         <div className="small-card">
           <h5>📚 Next in Queue</h5>
-          <p>You have {cntpd!=0?cntpd:`No`} pending tasks to be finished.</p>
+          <p>{userRole === "Admin" ? `There ${cntpd === 1 ? "is" : "are"} ${cntpd || "no"} pending team task${cntpd === 1 ? "" : "s"} to review.` : `You have ${cntpd!=0?cntpd:`No`} pending tasks to be finished.`}</p>
         </div>
       </div>
       <section className="recent-section">

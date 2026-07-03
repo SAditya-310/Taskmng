@@ -6,22 +6,17 @@ import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import middle from "../middleware/mid1.js";
-
 const router = Router();
-
 router.post("/signup", [
     body("name").notEmpty(),
     body("email").isEmail(),
     body("password").isLength({ min: 4 })
 ], async (req, res) => {
-
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-
     const { name, email, password } = req.body;
-
     try {
         const existingUser = await Admin.findOne({ email });
         if (existingUser) {
@@ -67,7 +62,6 @@ router.post("/login", [
             existingUser = await User.findOne({ email });
             role = "User";
         }
-
         if (!existingUser) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
@@ -142,7 +136,7 @@ router.get("/profile", middle, async (req, res) => {
     try {
         const existingUser = role === "Admin"
             ? await Admin.findById(userId).select("name email")
-            : await User.findById(userId).select("name email");
+            : await User.findById(userId).select("name email managerId");
 
         if (!existingUser) {
             return res.status(404).json({ message: "Profile not found" });
@@ -152,27 +146,62 @@ router.get("/profile", middle, async (req, res) => {
             ? { assignedBy: userId }
             : { assignedTo: userId };
 
-        const totalTasks = await Task.countDocuments(taskOwnerFilter);
-        const completedTasks = await Task.countDocuments({
-            ...taskOwnerFilter,
-            status: "completed"
-        });
+        const [totalTasks, completedTasks, pendingTasks, overdueTasks] = await Promise.all([
+            Task.countDocuments(taskOwnerFilter),
+            Task.countDocuments({
+                ...taskOwnerFilter,
+                status: "completed"
+            }),
+            Task.countDocuments({
+                ...taskOwnerFilter,
+                status: "pending"
+            }),
+            Task.countDocuments({
+                ...taskOwnerFilter,
+                status: "overdue"
+            })
+        ]);
 
         const accuracy =
             totalTasks === 0 ? 0 :
             Number(((completedTasks / totalTasks) * 100).toFixed(2));
 
+        if (role === "Admin") {
+            const teamMembers = await User.find({ managerId: userId }).select("name email status");
+            return res.json({
+                name: existingUser.name,
+                email: existingUser.email,
+                role,
+                totalTasks,
+                completedTasks,
+                pendingTasks,
+                overdueTasks,
+                accuracy,
+                teamMembersCount: teamMembers.length,
+                activeMembersCount: teamMembers.filter((member) => member.status === "active").length,
+                teamMembers
+            });
+        }
+
+        const manager = existingUser.managerId
+            ? await Admin.findById(existingUser.managerId).select("name email")
+            : null;
+
         res.json({
             name: existingUser.name,
             email: existingUser.email,
-            completedTasks,
+            role,
             totalTasks,
-            accuracy
+            completedTasks,
+            pendingTasks,
+            overdueTasks,
+            accuracy,
+            managerName: manager?.name || "Not assigned yet",
+            managerEmail: manager?.email || null
         });
 
     } catch (err) {
         res.status(500).json({ message: "Error fetching profile" });
     }
 });
-
 export default router;

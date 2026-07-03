@@ -116,8 +116,9 @@ function Members() {
         <div className="home-wrapper">
           <header className="dashboard-header">
             <div className="header-text-group">
+              <span className="section-badge">Team Leader view</span>
               <h1 className="section-title">Members Overview</h1>
-              <p className="section-subtitle">You have {mems.length} members in your team.</p>
+              <p className="section-subtitle">You have {mems.length} members in your team. Keep the roster tidy and active.</p>
             </div>
     
             <div className="header-actions">
