@@ -153,6 +153,34 @@
   transform: translateY(0);
 }
 
+.ai-report-btn {
+  border: none;
+  height: 46px;
+  padding: 0 18px;
+  border-radius: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #0f172a;
+  cursor: pointer;
+  background: linear-gradient(180deg, #ffffff, #eef6ff);
+  border: 1px solid #cfe3f0;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.ai-report-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: #8fd2f2;
+  color: #0b5677;
+  box-shadow: 0 12px 22px rgba(2, 132, 199, 0.14);
+}
+
+.ai-report-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
 .task-list-container {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -389,6 +417,12 @@
   box-shadow: 0 24px 50px rgba(15, 23, 42, 0.18);
 }
 
+.ai-modal-box {
+  width: min(94vw, 980px);
+  max-height: 88vh;
+  overflow: auto;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -483,6 +517,161 @@
   cursor: pointer;
 }
 
+.ai-source-tag {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.ai-loading-box,
+.ai-message-box {
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.ai-loading-box {
+  background: #f8fbff;
+  border: 1px solid #dbeafe;
+  color: #35516b;
+}
+
+.ai-message-box {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.ai-report-layout {
+  display: grid;
+  gap: 18px;
+}
+
+.ai-summary-card,
+.ai-column-card,
+.ai-member-card {
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.ai-summary-card {
+  padding: 18px;
+}
+
+.ai-summary-text {
+  margin: 0 0 14px;
+  color: var(--text-dark);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ai-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ai-metric-pill {
+  border-radius: 14px;
+  padding: 14px;
+  background: #f8fbff;
+  border: 1px solid #dbeafe;
+}
+
+.ai-metric-pill span,
+.ai-member-name-row span,
+.ai-member-section-title {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ai-metric-pill strong {
+  display: block;
+  margin-top: 6px;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.ai-column-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ai-column-card {
+  padding: 16px;
+}
+
+.ai-column-card h4,
+.ai-member-card h5 {
+  margin: 0 0 10px;
+  color: var(--text-dark);
+}
+
+.ai-column-card ul,
+.ai-mini-group ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #334155;
+}
+
+.ai-column-card li,
+.ai-mini-group li {
+  margin-bottom: 8px;
+  line-height: 1.45;
+}
+
+.ai-member-section {
+  display: grid;
+  gap: 12px;
+}
+
+.ai-member-section-title {
+  color: #0f172a;
+}
+
+.ai-member-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.ai-member-card {
+  padding: 16px;
+}
+
+.ai-member-name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ai-member-card p {
+  margin: 0 0 10px;
+  color: #334155;
+  font-size: 14px;
+}
+
+.ai-mini-group {
+  margin-top: 12px;
+}
+
+.ai-mini-group strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #0f172a;
+  font-size: 13px;
+}
+
 @media (max-width: 980px) {
   .home-wrapper {
     padding: 28px 20px;
@@ -501,6 +690,11 @@
     overflow-x: auto;
   }
 
+  .ai-column-grid,
+  .ai-member-grid {
+    grid-template-columns: 1fr;
+  }
+
   .list-header,
   .task-row-item {
     min-width: 760px;
@@ -515,7 +709,8 @@
   }
 
   .filter-wrapper,
-  .add-task-btn {
+  .add-task-btn,
+  .ai-report-btn {
     width: 100%;
   }
 
@@ -539,5 +734,9 @@
 
   .page-btn {
     min-width: 96px;
+  }
+
+  .ai-metric-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -115,7 +115,7 @@ router.post("/addmember", middle, async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            managerId: req.user.id // ✅ added
+            managerId: req.user.id
         });
 
         await newUser.save();

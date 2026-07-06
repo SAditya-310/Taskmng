@@ -5,6 +5,8 @@ import express, { application } from "express";
 import cors from "cors";
 import taskroute from "./Routes/tasks.js";
 import authroute from "./Routes/auth.js";
+import geminiRoutes from "./Routes/gemini.js";
+import analysisRoutes from "./Routes/analysis.js";
 const app=express();
 app.use(cors());
 app.use(express.json());
@@ -16,6 +18,8 @@ await mongoose.connect(process.env.mongo_uri).then(()=>{
 });
 app.use("/",taskroute);
 app.use("/",authroute);
+app.use("/", geminiRoutes);
+app.use("/", analysisRoutes);
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`);
 });

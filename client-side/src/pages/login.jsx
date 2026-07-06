@@ -56,8 +56,6 @@ function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                 />
 
-                {/* ❌ removed select */}
-
                 <button className="login-btn" onClick={handlesubmit}>
                     Login
                 </button>

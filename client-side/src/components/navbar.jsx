@@ -34,6 +34,11 @@ function Navbar() {
                             </li>
                             {usr && usr.role === "Admin" && (
                                 <li className="nav-item">
+                                    <NavLink className={({ isActive }) => `nav-link${isActive ? " active" : ""}`} to="/analysis">Analysis</NavLink>
+                                </li>
+                            )}
+                            {usr && usr.role === "Admin" && (
+                                <li className="nav-item">
                                     <NavLink className={({ isActive }) => `nav-link${isActive ? " active" : ""}`} to="/members">Members</NavLink>
                                 </li>
                             )}

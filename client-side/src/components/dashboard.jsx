@@ -4,10 +4,14 @@ import "./dashboard.css";
 import Loader from "./loader";
 function Dashboard() {
   const [showModal, setShowModal] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [mems, setMems] = useState([]);
   const [status, setStatus] = useState("all");
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiReport, setAiReport] = useState(null);
+  const [aiMessage, setAiMessage] = useState("");
   const [page, setPage] = useState(1);
   const tasksPerPage = 6;
   const [formData, setFormData] = useState({
@@ -104,6 +108,67 @@ function Dashboard() {
       console.error("Error fetching members:", err);
     }
   }
+  const generateAiReport = async () => {
+    if (userRole !== "Admin") {
+      alert("Only admins can generate the team analysis");
+      return;
+    }
+
+    setAiLoading(true);
+    setAiMessage("");
+    setAiReport(null);
+    setShowAiModal(true);
+
+    try {
+      const [membersRes, tasksRes] = await Promise.all([
+        fetch("http://localhost:5000/members", {
+          method: "GET",
+          headers: { "Content-Type": "application/json", "token": token },
+        }),
+        fetch("http://localhost:5000/getmanagertask?status=all", {
+          method: "GET",
+          headers: { "Content-Type": "application/json", "token": token },
+        }),
+      ]);
+
+      if (!membersRes.ok) {
+        const data = await membersRes.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to fetch team members");
+      }
+
+      if (!tasksRes.ok) {
+        const data = await tasksRes.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to fetch team tasks");
+      }
+
+      const [members, allTasks] = await Promise.all([
+        membersRes.json(),
+        tasksRes.json(),
+      ]);
+
+      const analysisRes = await fetch("http://localhost:5000/ai/team-analysis", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          token,
+        },
+        body: JSON.stringify({ members, tasks: allTasks }),
+      });
+
+      const analysisData = await analysisRes.json();
+
+      if (!analysisRes.ok && !analysisData.report) {
+        throw new Error(analysisData.message || analysisData.error || "Failed to generate AI report");
+      }
+
+      setAiReport(analysisData.report || null);
+      setAiMessage(analysisData.message || "");
+    } catch (err) {
+      setAiMessage(err.message || "Error generating AI report");
+    } finally {
+      setAiLoading(false);
+    }
+  };
   const addtask = async (e) => {
     e.preventDefault();
     try {
@@ -197,6 +262,16 @@ function Dashboard() {
         </div>
 
         <div className="header-actions">
+          {userRole === "Admin" && (
+            <button
+              className="ai-report-btn"
+              onClick={generateAiReport}
+              disabled={aiLoading}
+            >
+              {aiLoading ? "Generating..." : "Generate AI Report"}
+            </button>
+          )}
+
           {/* Filter Menu */}
           <div className="filter-wrapper">
             <div className="filter-icon-box">
@@ -349,6 +424,113 @@ function Dashboard() {
                 <button type="submit" className="create-btn">Add to Schedule</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showAiModal && (
+        <div className="modal-overlay">
+          <div className="modal-box ai-modal-box">
+            <div className="modal-header">
+              <div>
+                <h3 style={{ margin: 0 }}>AI Team Analysis</h3>
+                <p className="ai-source-tag">
+                  {aiReport?.source === "gemini" ? "Generated with Gemini" : "Local fallback analysis"}
+                </p>
+              </div>
+              <button className="close-btn" onClick={() => setShowAiModal(false)}>×</button>
+            </div>
+
+            {aiLoading ? (
+              <div className="ai-loading-box">Generating report from team data...</div>
+            ) : aiReport ? (
+              <div className="ai-report-layout">
+                {aiMessage && <div className="ai-message-box">{aiMessage}</div>}
+
+                <section className="ai-summary-card">
+                  <p className="ai-summary-text">{aiReport.teamSummary}</p>
+                  <div className="ai-metric-grid">
+                    <div className="ai-metric-pill">
+                      <span>Productivity</span>
+                      <strong>{aiReport.productivity}</strong>
+                    </div>
+                    <div className="ai-metric-pill">
+                      <span>Deadline discipline</span>
+                      <strong>{aiReport.deadlineDiscipline}</strong>
+                    </div>
+                  </div>
+                </section>
+
+                <section className="ai-column-grid">
+                  <div className="ai-column-card">
+                    <h4>Strengths</h4>
+                    <ul>
+                      {(aiReport.strengths || []).map((item, index) => (
+                        <li key={`strength-${index}`}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="ai-column-card">
+                    <h4>Weaknesses</h4>
+                    <ul>
+                      {(aiReport.weaknesses || []).map((item, index) => (
+                        <li key={`weakness-${index}`}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="ai-column-card">
+                    <h4>Recommendations</h4>
+                    <ul>
+                      {(aiReport.recommendations || []).map((item, index) => (
+                        <li key={`recommendation-${index}`}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </section>
+
+                <section className="ai-member-section">
+                  <div className="ai-member-section-title">Per-member analysis</div>
+                  <div className="ai-member-grid">
+                    {(aiReport.memberAnalyses || []).map((member) => (
+                      <article key={member.memberId || member.name} className="ai-member-card">
+                        <div className="ai-member-name-row">
+                          <h5>{member.name}</h5>
+                          <span>{member.taskCount} tasks</span>
+                        </div>
+                        <p>{member.productivity}</p>
+                        <p>{member.deadlineDiscipline}</p>
+                        <div className="ai-mini-group">
+                          <strong>Strengths</strong>
+                          <ul>
+                            {(member.strengths || []).map((item, index) => (
+                              <li key={`member-strength-${member.name}-${index}`}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="ai-mini-group">
+                          <strong>Weaknesses</strong>
+                          <ul>
+                            {(member.weaknesses || []).map((item, index) => (
+                              <li key={`member-weakness-${member.name}-${index}`}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="ai-mini-group">
+                          <strong>Suggestions</strong>
+                          <ul>
+                            {(member.recommendations || []).map((item, index) => (
+                              <li key={`member-recommendation-${member.name}-${index}`}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            ) : (
+              <div className="ai-loading-box">{aiMessage || "No report generated yet."}</div>
+            )}
           </div>
         </div>
       )}
