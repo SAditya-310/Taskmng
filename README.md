@@ -31,7 +31,7 @@ The goal is to make task management simple and efficient.
 
 Shows the most important task using a priority algorithm.
 
-![Home Page](imgs/home.png.png)
+![Home Page](home.png.png)
 
 ---
 
@@ -41,7 +41,7 @@ Shows the most important task using a priority algorithm.
 * Set importance level (1–10)
 * Real-time updates without refreshing the page
 
-![Dashboard](imgs/dashboard.png.png)
+![Dashboard](dashboard.png.png)
 
 ---
 
@@ -49,7 +49,7 @@ Shows the most important task using a priority algorithm.
 
 Stores user information and tracks productivity.
 
-![Profile](imgs/profile.png.png)
+![Profile](profile.png.png)
 
 Accuracy formula:
 
