@@ -1,52 +1,93 @@
-# TaskManager
+# Task Manager – MERN Productivity App
 
-TaskManager is a full-stack task management app with a React client, a Node.js/Express backend, and MongoDB for persistence.
+A task management web application built using the MERN stack.
+The app focuses on smart task prioritization using data structures, helping users quickly identify the most important task.
+
+---
+
+## Overview
+
+This project includes:
+
+* A dashboard to create and manage tasks
+* A home page that highlights the most important task
+* A profile page with productivity analytics
+
+The goal is to make task management simple and efficient.
+
+---
 
 ## Features
-- User signup and login
-- Admin and member roles
-- Task assignment and tracking
-- Profile and dashboard views
-- Member management for admins
 
-## Project Structure
+### Navigation
 
-```text
-TaskManager/
-├── client-side/   # React app
-└── server-side/   # Express API and MongoDB models
+* **Home** – Displays the highest priority task
+* **Dashboard** – Create and manage tasks
+* **Profile** – Shows user details and analytics
+
+---
+
+## Home Page
+
+Shows the most important task using a priority algorithm.
+
+![Home Page](imgs/home.png.png)
+
+---
+
+## Dashboard (Task Management)
+
+* Add tasks with title, description, and due date
+* Set importance level (1–10)
+* Real-time updates without refreshing the page
+
+![Dashboard](imgs/dashboard.png.png)
+
+---
+
+## Profile & Analytics
+
+Stores user information and tracks productivity.
+
+![Profile](imgs/profile.png.png)
+
+Accuracy formula:
+
+```
+Accuracy % = (Completed Tasks / Total Tasks) × 100
 ```
 
-## Prerequisites
-- Node.js 18+
-- MongoDB connection string
+---
 
-## Setup
+## Core Logic
 
-Install dependencies from the repository root:
+The system calculates a priority weight for each task:
 
-```powershell
-npm run install:all
+```
+Priority Weight = (Importance × 0.7) + (Urgency Factor × 0.3)
 ```
 
-Create a `.env` file inside `server-side` with your MongoDB connection string and JWT secret.
+This ensures tasks with higher importance and closer deadlines appear first.
 
-## Run the app
+---
 
-Start the backend:
+## Tech Stack
 
-```powershell
-cd server-side
-npm start
-```
+Frontend
 
-Start the frontend:
+* React.js
+* React Hooks
+* Context API
 
-```powershell
-cd client-side
-npm start
-```
+Backend
 
-## Notes
-- The backend entry point is [server-side/server.js](server-side/server.js).
-- The main React navigation is in [client-side/src/components/navbar.jsx](client-side/src/components/navbar.jsx).
+* Node.js
+* Express.js
+
+Database
+
+* MongoDB
+
+---
+
+A full-stack MERN project showing how data structures can improve productivity tools.
